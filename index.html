@@ -1,142 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Map with Layer Effects and Animation</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
-    <style>
-        html, body, #viewDiv {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        #controls {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 10;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-    </style>
-    <script src="https://js.arcgis.com/4.30/"></script>
-    <script>
-        require([
-            "esri/Map",
-            "esri/views/MapView",
-            "esri/WebMap",
-            "esri/layers/GeoJSONLayer",
-            "esri/layers/GraphicsLayer",
-            "esri/Graphic"
-        ], function(Map, MapView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic) {
-            // Create a WebMap instance using the web map ID
-            var webMap = new WebMap({
-                portalItem: { // autocasts as new PortalItem()
-                    id: "66b8501f53af47e6ae981214c4d9a32a" // your web map ID
-                }
-            });
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>California Wildfires</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
 
-            // Create a MapView instance
-            var mapView = new MapView({
-                container: "viewDiv", // Div element to contain the view
-                map: webMap,
-                center: [-118.805, 34.027], // [longitude, latitude]
-                zoom: 10 // Zoom level
-            });
-
-            // Create a GraphicsLayer with overall transparency
-            var graphicsLayer = new GraphicsLayer({
-                opacity: 0.86 // Set overall transparency to 14%
-            });
-            webMap.add(graphicsLayer);
-
-            // Create a GeoJSONLayer instance
-            var geojsonLayer = new GeoJSONLayer({
-                url: "https://raw.githubusercontent.com/jacob-hogue/Deadly-Wildfires-New/main/Deadliest10.geojson", // URL to your GeoJSON file
-                title: "California Top 10 Deadliest Wildfires"
-            });
-
-            // Add the GeoJSONLayer to the map
-            webMap.add(geojsonLayer);
-
-            // Wait until the layer is loaded
-            geojsonLayer.when(function() {
-                // Convert GeoJSON features to graphics
-                geojsonLayer.queryFeatures().then(function(results) {
-                    results.features.forEach(function(feature) {
-                        var graphic = new Graphic({
-                            geometry: feature.geometry,
-                            attributes: feature.attributes,
-                            symbol: {
-                                type: "simple-fill", // Change this based on your needs
-                                color: "#fc7b4c", // Solid fill color
-                                outline: {
-                                    color: "#9979d1", // Solid outline color
-                                    width: 1
-                                }
-                            }
-                        });
-                        graphicsLayer.add(graphic);
-                    });
-
-                    // Apply blend mode and layer effect
-                    graphicsLayer.blendMode = "color-dodge"; // Example blend mode
-                    graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Updated bloom effect
-
-                    // Remove the GeoJSONLayer after conversion
-                    webMap.remove(geojsonLayer);
-                });
-            });
-
-            // Animation logic
-            var objectIDs = [1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199];
-            var currentIndex = 0;
-            var animationTimeout;
-
-            function zoomToNextExtent() {
-                if (currentIndex >= objectIDs.length) {
-                    currentIndex = 0;
-                }
-                var objectId = objectIDs[currentIndex];
-                graphicsLayer.queryFeatures({
-                    objectIds: [objectId]
-                }).then(function(results) {
-                    if (results.features.length > 0) {
-                        var feature = results.features;
-                        mapView.goTo({
-                            target: feature.geometry.extent.expand(1.5),
-                            duration: 2000
-                        }).then(function() {
-                            animationTimeout = setTimeout(function() {
-                                currentIndex++;
-                                zoomToNextExtent();
-                            }, 10000); // Pause for 10 seconds
-                        });
-                    }
-                });
-            }
-
-            document.getElementById("startBtn").addEventListener("click", function() {
-                if (!animationTimeout) {
-                    zoomToNextExtent();
-                }
-            });
-
-            document.getElementById("stopBtn").addEventListener("click", function() {
-                clearTimeout(animationTimeout);
-                animationTimeout = null;
-            });
-        });
-    </script>
+    .controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+  <script src="https://js.arcgis.com/4.30/"></script>
 </head>
 <body>
-    <div id="viewDiv"></div>
-    <div id="controls">
-        <button id="startBtn">Start Animation</button>
-        <button id="stopBtn">Stop Animation</button>
-    </div>
+  <div id="viewDiv"></div>
+  <div class="controls">
+    <button id="startAnimation">Start Animation</button>
+    <button id="stopAnimation">Stop Animation</button>
+  </div>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/WebMap",
+      "esri/layers/GeoJSONLayer",
+      "esri/layers/GraphicsLayer",
+      "esri/Graphic"
+    ], function(Map, MapView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic) {
+
+      // Create a WebMap instance using the web map ID
+      var webMap = new WebMap({
+        portalItem: { // autocasts as new PortalItem()
+          id: "66b8501f53af47e6ae981214c4d9a32a" // your web map ID
+        }
+      });
+
+      // Create a MapView instance
+      var mapView = new MapView({
+        container: "viewDiv", // Div element to contain the view
+        map: webMap,
+        center: [-118.805, 34.027], // [longitude, latitude]
+        zoom: 10 // Zoom level
+      });
+
+      // Create a GraphicsLayer with overall transparency
+      var graphicsLayer = new GraphicsLayer({
+        opacity: 0.86 // Set overall transparency to 14%
+      });
+      webMap.add(graphicsLayer);
+
+      // Create a GeoJSONLayer instance
+      var geojsonLayer = new GeoJSONLayer({
+        url: "https://raw.githubusercontent.com/jacob-hogue/Deadly-Wildfires-New/main/Deadliest10.geojson",
+        title: "California Top 10 Deadliest Wildfires"
+      });
+
+      // Add the GeoJSONLayer to the map
+      webMap.add(geojsonLayer);
+
+      // Wait until the layer is loaded
+      geojsonLayer.when(function() {
+        // Convert GeoJSON features to graphics
+        geojsonLayer.queryFeatures().then(function(results) {
+          results.features.forEach(function(feature) {
+            var graphic = new Graphic({
+              geometry: feature.geometry,
+              attributes: feature.attributes,
+              symbol: {
+                type: "simple-fill",
+                color: "#fc7b4c", // Solid fill color
+                outline: {
+                  color: "#9979d1", // Solid outline color
+                  width: 1
+                }
+              }
+            });
+            graphicsLayer.add(graphic);
+          });
+
+          // Apply blend mode and layer effect
+          graphicsLayer.blendMode = "color-dodge"; // Example blend mode
+          graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Updated bloom effect
+
+          // Remove the GeoJSONLayer after conversion
+          webMap.remove(geojsonLayer);
+        });
+      });
+
+      // Animation logic
+      var objectIDs = [1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199];
+      var currentIndex = 0;
+      var animationTimeout;
+
+      function zoomToNextExtent() {
+        if (currentIndex >= objectIDs.length) {
+          currentIndex = 0;
+        }
+        var objectId = objectIDs[currentIndex];
+        graphicsLayer.queryFeatures({
+          objectIds: [objectId]
+        }).then(function(results) {
+          if (results.features.length > 0) {
+            var feature = results.features;
+            mapView.goTo({
+              target: feature.geometry.extent.expand(1.5),
+              duration: 2000
+            }).then(function() {
+              animationTimeout = setTimeout(function() {
+                currentIndex++;
+                zoomToNextExtent();
+              }, 10000); // Pause for 10 seconds
+            });
+          }
+        });
+      }
+
+      document.getElementById("startAnimation").addEventListener("click", function() {
+        if (!animationTimeout) {
+          zoomToNextExtent();
+        }
+      });
+
+      document.getElementById("stopAnimation").addEventListener("click", function() {
+        clearTimeout(animationTimeout);
+        animationTimeout = null;
+      });
+    });
+  </script>
 </body>
 </html>
