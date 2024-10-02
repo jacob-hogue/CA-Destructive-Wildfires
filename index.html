@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Scene from Web Map</title>
+    <title>3D Scene with Layer Effects</title>
     <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
     <style>
         html, body, #viewDiv {
@@ -17,8 +17,9 @@
         require([
             "esri/Map",
             "esri/views/SceneView",
-            "esri/WebMap"
-        ], function(Map, SceneView, WebMap) {
+            "esri/WebMap",
+            "esri/layers/Layer"
+        ], function(Map, SceneView, WebMap, Layer) {
             // Create a WebMap instance using the web map ID
             var webMap = new WebMap({
                 portalItem: { // autocasts as new PortalItem()
@@ -30,11 +31,32 @@
             var sceneView = new SceneView({
                 container: "viewDiv", // Div element to contain the view
                 map: webMap,
-                // Set initial camera view parameters
                 camera: {
-                    position: [ -118.805, 34.027, 2000 ], // [longitude, latitude, altitude]
+                    position: [-118.805, 34.027, 2000], // [longitude, latitude, altitude]
                     tilt: 75 // tilt angle in degrees
                 }
+            });
+
+            // Wait until the web map is loaded
+            webMap.load().then(function() {
+                // Loop through layers to find the specific GeoJSON layer
+                webMap.layers.forEach(function(layer) {
+                    if (layer.title === "California Top 10 Deadliest Wildfires") {
+                        // Set blend mode and opacity for the layer
+                        layer.blendMode = "color-dodge"; // Set blend mode to Color Dodge
+                        layer.opacity = 0.14; // Set overall transparency to 14%
+                        
+                        // Apply a bloom effect
+                        layer.effect = {
+                            type: "bloom", // Type of effect
+                            options: {
+                                strength: 0.1,  // Strength of bloom effect
+                                radius: 3.1,    // Radius of bloom effect
+                                threshold: 10    // Threshold for bloom effect
+                            }
+                        };
+                    }
+                });
             });
         });
     </script>
