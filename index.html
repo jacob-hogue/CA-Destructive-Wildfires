@@ -1,186 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>California Wildfires</title>
-  <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/themes/light/main.css" />
-  <script src="https://js.arcgis.com/4.30/"></script>
-  <style>
-    html, body, #viewDiv {
-      padding: 0;
-      margin: 0;
-      height: 100%;
-      width: 100%;
-    }
-
-    .controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 10px;
-      border-radius: 5px;
-    }
-  </style>
-</head>
-<body>
-  <div id="viewDiv"></div>
-  <div class="controls">
-    <button id="startAnimation">Start Animation</button>
-    <button id="stopAnimation">Stop Animation</button>
-  </div>
-
-  <script>
-    require([
-      "esri/views/MapView",
-      "esri/WebMap",              
-      "esri/layers/GraphicsLayer",
-      "esri/Graphic",
-      "esri/core/watchUtils"      
-    ], function(MapView, WebMap, GraphicsLayer, Graphic, watchUtils) {
-
-      console.log("Modules loaded.");
-
-      // Load the web map by ID
-      const webMap = new WebMap({
-        portalItem: {
-          id: "66b8501f53af47e6ae981214c4d9a32a"  // Your web map ID
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Scene from Web Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
+    <style>
+        html, body, #viewDiv {
+            height: 100%;
+            margin: 0;
+            padding: 0;
         }
-      });
-
-      // Create the SceneView (for 3D)
-      var view = new MapView({
-        container: "viewDiv",
-       map: webMap,
-       center: [-119.5, 37], // Center at California
-       zoom: 6  // Adjusted zoom level
-   });
-
-      console.log("SceneView created, waiting for map to load...");
-
-      // Wait for the view and web map to load
-      view.when(function() {
-        console.log("SceneView and WebMap loaded.");
-
-        // Retrieve the fire perimeter layer by name from the web map
-        const firePerimeterLayer = webMap.layers.find(function(layer) {
-          return layer.title === "California Fire Perimeters (all)";
-        });
-
-        if (!firePerimeterLayer) {
-          console.error("Fire Perimeter Layer not found.");
-          return;
-        }
-
-        console.log("Fire Perimeter Layer found:", firePerimeterLayer);
-
-        // Create a GraphicsLayer for centroids (transparent points)
-        const centroidLayer = new GraphicsLayer();
-        webMap.add(centroidLayer);
-
-        // Query the fire perimeter layer for centroids
-        firePerimeterLayer.queryFeatures({
-          where: "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)", 
-          returnGeometry: true,
-          outFields: ["*"]
-        }).then(function(results) {
-          console.log("Query results:", results);
-          
-          results.features.forEach(function(feature) {
-            var centroid = feature.geometry.centroid;
-
-            // Create a point graphic with fully transparent symbol
-            var pointGraphic = new Graphic({
-              geometry: centroid,
-              attributes: feature.attributes,
-              symbol: {
-                type: "simple-marker",  
-                color: [0, 0, 0, 0],    
-                outline: {
-                  color: [0, 0, 0, 0],  
-                  width: 0
+    </style>
+    <script src="https://js.arcgis.com/4.30/"></script>
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/SceneView",
+            "esri/WebMap"
+        ], function(Map, SceneView, WebMap) {
+            // Create a WebMap instance using the web map ID
+            var webMap = new WebMap({
+                portalItem: { // autocasts as new PortalItem()
+                    id: "66b8501f53af47e6ae981214c4d9a32a" // your web map ID
                 }
-              }
             });
 
-            centroidLayer.add(pointGraphic);  // Add centroid to the GraphicsLayer
-          });
-
-          // Show the wildfire layer with initial ObjectIDs
-          firePerimeterLayer.visible = true;
-          firePerimeterLayer.definitionExpression = "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)";
-
-          console.log("Animation controls set up.");
-
-          // Event listener for Start Animation button
-          document.getElementById('startAnimation').addEventListener('click', function() {
-            startAnimation();
-          });
-
-          // Event listener for Stop Animation button
-          document.getElementById('stopAnimation').addEventListener('click', function() {
-            stopAnimation();
-          });
-
-          // Stop animation when user manually navigates the view
-          view.on("drag", function() {
-            stopAnimation();
-          });
-        }).catch(function(error) {
-          console.error("Error querying fire perimeter layer:", error);
+            // Create a SceneView instance
+            var sceneView = new SceneView({
+                container: "viewDiv", // Div element to contain the view
+                map: webMap,
+                // Set initial camera view parameters
+                camera: {
+                    position: [ -118.805, 34.027, 2000 ], // [longitude, latitude, altitude]
+                    tilt: 75 // tilt angle in degrees
+                }
+            });
         });
-
-        // Function to zoom to a centroid point
-        function zoomToFire(centroid) {
-          view.goTo({
-            target: centroid,
-            zoom: 11,     
-            tilt: 60      
-          }, {
-            duration: 4000,  
-            easing: "in-out-cubic"  
-          });
-        }
-
-        // Function to stop the animation
-        function stopAnimation() {
-          if (animationActive) {
-            clearInterval(animationInterval);
-            animationActive = false;
-            console.log("Animation stopped.");
-          }
-        }
-
-        // Function to start the animation
-        function startAnimation() {
-          if (animationActive) return;
-          animationActive = true;
-          totalFeatures = centroidLayer.graphics.length;
-
-          // Start the animation
-          animationInterval = setInterval(function() {
-            if (currentFeatureIndex >= totalFeatures) {
-              currentFeatureIndex = 0; 
-            }
-
-            var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
-            zoomToFire(graphic.geometry);
-
-            // Hide all other fire extents
-            firePerimeterLayer.visible = false;
-            firePerimeterLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
-            firePerimeterLayer.visible = true;
-
-            currentFeatureIndex++;  
-          }, 10000); 
-          console.log("Animation started.");
-        }
-      }).catch(function(error) {
-        console.error("Error loading the SceneView:", error);
-      });
-    });
-  </script>
+    </script>
+</head>
+<body>
+    <div id="viewDiv"></div>
 </body>
 </html>
