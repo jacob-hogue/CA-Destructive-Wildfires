@@ -141,23 +141,6 @@
       var insetGraphicsLayer = new GraphicsLayer();
       insetMap.map.add(insetGraphicsLayer);
 
-      // Add a FeatureLayer for the California boundary
-      var californiaBoundaryLayer = new FeatureLayer({
-        url: "https://services3.arcgis.com/fdvHcZVgB2QSRNkL/arcgis/rest/services/State_Boundary/FeatureServer/0",
-        renderer: {
-          type: "simple",
-          symbol: {
-            type: "simple-fill",
-            color: [0, 0, 0, 0], // No fill
-            outline: {
-              color: [255, 255, 255, 1], // White color
-              width: 1 // Thin line
-            }
-          }
-        }
-      });
-      insetMap.map.add(californiaBoundaryLayer);
-
       // Wait until the layer is loaded
       geojsonLayer.when(function() {
         // Convert GeoJSON features to graphics
