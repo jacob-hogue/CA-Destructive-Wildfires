@@ -18,8 +18,8 @@
             "esri/Map",
             "esri/views/SceneView",
             "esri/WebMap",
-            "esri/layers/Layer"
-        ], function(Map, SceneView, WebMap, Layer) {
+            "esri/layers/GeoJSONLayer"
+        ], function(Map, SceneView, WebMap, GeoJSONLayer) {
             // Create a WebMap instance using the web map ID
             var webMap = new WebMap({
                 portalItem: { // autocasts as new PortalItem()
@@ -37,26 +37,30 @@
                 }
             });
 
-            // Wait until the web map is loaded
-            webMap.load().then(function() {
-                // Loop through layers to find the specific GeoJSON layer
-                webMap.layers.forEach(function(layer) {
-                    if (layer.title === "California Top 10 Deadliest Wildfires") {
-                        // Set blend mode and opacity for the layer
-                        layer.blendMode = "color-dodge"; // Set blend mode to Color Dodge
-                        layer.opacity = 0.86; // Set overall transparency to 14%
-                        
-                        // Apply a bloom effect
-                        layer.effect = {
-                            type: "bloom", // Type of effect
-                            options: {
-                                strength: 0.1,  // Strength of bloom effect
-                                radius: 3.1,    // Radius of bloom effect
-                                threshold: 10    // Threshold for bloom effect
-                            }
-                        };
+            // Create a GeoJSONLayer instance
+            var geojsonLayer = new GeoJSONLayer({
+                url: "https://github.com/jacob-hogue/Deadly-Wildfires-New/blob/main/Deadliest10.geojson", // URL to your GeoJSON file
+                title: "California Top 10 Deadliest Wildfires"
+            });
+
+            // Add the GeoJSONLayer to the map
+            webMap.add(geojsonLayer);
+
+            // Wait until the layer is loaded
+            geojsonLayer.when(function() {
+                // Set blend mode and opacity for the layer
+                geojsonLayer.blendMode = "color-dodge"; // Set blend mode to Color Dodge
+                geojsonLayer.opacity = 0.86; // Set overall transparency to 14%
+                
+                // Apply a bloom effect
+                geojsonLayer.effect = {
+                    type: "bloom", // Type of effect
+                    options: {
+                        strength: 0.5,  // Strength of bloom effect
+                        radius: 3.1,    // Radius of bloom effect
+                        threshold: 1    // Threshold for bloom effect
                     }
-                });
+                };
             });
         });
     </script>
