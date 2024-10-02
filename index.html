@@ -35,14 +35,16 @@
   <script>
     require([
       "esri/views/SceneView",
-      "esri/WebMap",              // Import WebMap instead of Map
+      "esri/WebMap",              
       "esri/layers/GraphicsLayer",
       "esri/Graphic",
-      "esri/core/watchUtils"      // Ensure this import is necessary
+      "esri/core/watchUtils"      
     ], function(SceneView, WebMap, GraphicsLayer, Graphic, watchUtils) {
 
+      console.log("Modules loaded.");
+
       // Load the web map by ID
-      const webMap = new WebMap({   // Use WebMap for the web map reference
+      const webMap = new WebMap({
         portalItem: {
           id: "66b8501f53af47e6ae981214c4d9a32a"  // Your web map ID
         }
@@ -51,39 +53,44 @@
       // Create the SceneView (for 3D)
       var view = new SceneView({
         container: "viewDiv",
-        map: webMap,                // Attach the webMap to the view
+        map: webMap,
         camera: {
           position: {
-            longitude: -119.5,       // Longitude at the center of California
-            latitude: 37,            // Latitude at the center of California
-            z: 3000000               // Adjusted zoom level to fit all of California
+            longitude: -119.5,       
+            latitude: 37,            
+            z: 3000000               
           },
           tilt: 0
         },
         environment: {
           background: {
             type: "color",
-            color: [50, 50, 50, 1]   // Dark gray background
+            color: [50, 50, 50, 1]   
           },
           lighting: {
             type: "virtual",
-            directShadows: false      // Disable shadows
+            directShadows: false     
           }
         }
       });
 
-      var animationActive = false;
-      var currentFeatureIndex = 0;
-      var totalFeatures = 0;
-      var animationInterval;
+      console.log("SceneView created, waiting for map to load...");
 
       // Wait for the view and web map to load
       view.when(function() {
+        console.log("SceneView and WebMap loaded.");
 
         // Retrieve the fire perimeter layer by name from the web map
         const firePerimeterLayer = webMap.layers.find(function(layer) {
           return layer.title === "California Fire Perimeters (all)";
         });
+
+        if (!firePerimeterLayer) {
+          console.error("Fire Perimeter Layer not found.");
+          return;
+        }
+
+        console.log("Fire Perimeter Layer found:", firePerimeterLayer);
 
         // Create a GraphicsLayer for centroids (transparent points)
         const centroidLayer = new GraphicsLayer();
@@ -95,6 +102,8 @@
           returnGeometry: true,
           outFields: ["*"]
         }).then(function(results) {
+          console.log("Query results:", results);
+          
           results.features.forEach(function(feature) {
             var centroid = feature.geometry.centroid;
 
@@ -103,10 +112,10 @@
               geometry: centroid,
               attributes: feature.attributes,
               symbol: {
-                type: "simple-marker",  // Simple point marker
-                color: [0, 0, 0, 0],    // Fully transparent fill
+                type: "simple-marker",  
+                color: [0, 0, 0, 0],    
                 outline: {
-                  color: [0, 0, 0, 0],  // Fully transparent outline
+                  color: [0, 0, 0, 0],  
                   width: 0
                 }
               }
@@ -118,6 +127,8 @@
           // Show the wildfire layer with initial ObjectIDs
           firePerimeterLayer.visible = true;
           firePerimeterLayer.definitionExpression = "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)";
+
+          console.log("Animation controls set up.");
 
           // Event listener for Start Animation button
           document.getElementById('startAnimation').addEventListener('click', function() {
@@ -133,17 +144,19 @@
           view.on("drag", function() {
             stopAnimation();
           });
+        }).catch(function(error) {
+          console.error("Error querying fire perimeter layer:", error);
         });
 
         // Function to zoom to a centroid point
         function zoomToFire(centroid) {
           view.goTo({
             target: centroid,
-            zoom: 11,      // Adjust this zoom level to a comfortable view height
-            tilt: 60       // Oblique angle
+            zoom: 11,     
+            tilt: 60      
           }, {
-            duration: 4000,   // Duration for the animation (in milliseconds)
-            easing: "in-out-cubic"  // Smoother transition
+            duration: 4000,  
+            easing: "in-out-cubic"  
           });
         }
 
@@ -152,6 +165,7 @@
           if (animationActive) {
             clearInterval(animationInterval);
             animationActive = false;
+            console.log("Animation stopped.");
           }
         }
 
@@ -164,7 +178,7 @@
           // Start the animation
           animationInterval = setInterval(function() {
             if (currentFeatureIndex >= totalFeatures) {
-              currentFeatureIndex = 0;  // Loop back to the first fire
+              currentFeatureIndex = 0; 
             }
 
             var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
@@ -175,10 +189,12 @@
             firePerimeterLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
             firePerimeterLayer.visible = true;
 
-            currentFeatureIndex++;  // Move to the next fire
-          }, 10000); // 10 seconds delay between each zoom
+            currentFeatureIndex++;  
+          }, 10000); 
+          console.log("Animation started.");
         }
-
+      }).catch(function(error) {
+        console.error("Error loading the SceneView:", error);
       });
     });
   </script>
