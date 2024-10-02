@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>California Top 10 Deadliest Wildfires</title>
+  <title>California Wildfires</title>
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
   <style>
     html, body, #viewDiv {
@@ -16,21 +16,43 @@
     .controls {
       position: absolute;
       top: 10px;
-      left: 25px;
+      left: 10px;
       z-index: 10;
       background: rgba(255, 255, 255, 0.8);
       padding: 10px;
       border-radius: 5px;
     }
+
+    #titleBar {
+      background-color: #333; /* Dark gray background */
+      color: #f8f8f8; /* Off-white text */
+      text-align: center; /* Center the text */
+      padding: 15px; /* Add some padding */
+      font-size: 24px; /* Font size for title */
+      font-weight: bold; /* Bold font */
+      position: relative; /* Position for layout */
+      z-index: 10; /* Ensure it appears above the map */
+    }
+
+    #credit {
+      font-size: 14px; /* Smaller font size for credit */
+      position: absolute; /* Position it in the bottom right */
+      bottom: 10px; /* Position it at the bottom */
+      right: 10px; /* Position it at the right */
+      color: white; /* Color for credit text */
+      z-index: 10; /* Ensure it appears above the map */
+    }
   </style>
   <script src="https://js.arcgis.com/4.30/"></script>
 </head>
 <body>
+  <div id="titleBar">California Top 10 Deadliest Wildfires</div>
   <div id="viewDiv"></div>
   <div class="controls">
     <button id="startAnimation">Start Animation</button>
     <button id="stopAnimation">Stop Animation</button>
   </div>
+  <div id="credit">2024 Jacob Hogue</div>
 
   <script>
     require([
@@ -130,7 +152,7 @@
       function zoomToFire(extent) {
         mapView.goTo({
           target: extent,
-          duration: 8000, // Duration for the animation (in milliseconds)
+          duration: 4000, // Duration for the animation (in milliseconds)
           easing: "in-out-cubic" // Smoother transition
         });
       }
@@ -149,7 +171,7 @@
           });
 
           if (graphic) {
-            zoomToFire(graphic.geometry.extent.expand(1.5));
+            zoomToFire(graphic.geometry.extent.expand(1));
 
             // Hide all other fire extents
             graphicsLayer.graphics.forEach(function(g) {
