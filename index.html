@@ -127,12 +127,9 @@
       var animationTimeout;
       var animationActive = false;
 
-      function zoomToFire(centroid) {
+      function zoomToFire(extent) {
         mapView.goTo({
-          target: centroid,
-          zoom: 11, // Adjust this zoom level to a comfortable view height
-          tilt: 60 // Oblique angle
-        }, {
+          target: extent,
           duration: 4000, // Duration for the animation (in milliseconds)
           easing: "in-out-cubic" // Smoother transition
         });
@@ -147,12 +144,12 @@
             currentIndex = 0; // Loop back to the first fire
           }
 
-          var graphic = centroidLayer.graphics.find(function(g) {
+          var graphic = graphicsLayer.graphics.find(function(g) {
             return g.attributes.OBJECTID === objectIDs[currentIndex];
           });
 
           if (graphic) {
-            zoomToFire(graphic.geometry);
+            zoomToFire(graphic.geometry.extent.expand(1.5));
 
             // Hide all other fire extents
             graphicsLayer.graphics.forEach(function(g) {
@@ -160,12 +157,7 @@
             });
 
             // Show only the current fire extent
-            var currentFire = graphicsLayer.graphics.find(function(g) {
-              return g.attributes.OBJECTID === objectIDs[currentIndex];
-            });
-            if (currentFire) {
-              currentFire.visible = true;
-            }
+            graphic.visible = true;
 
             currentIndex++; // Move to the next fire
           }
