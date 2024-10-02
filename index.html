@@ -36,28 +36,27 @@
     require([
       "esri/views/SceneView",
       "esri/WebMap",
-      "esri/layers/GeoJSONLayer",
       "esri/layers/GraphicsLayer",
       "esri/Graphic",
       "esri/core/watchUtils"
-    ], function(SceneView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic, watchUtils) {
+    ], function(SceneView, WebMap, GraphicsLayer, Graphic, watchUtils) {
 
-      // Load the web map from ArcGIS Online
-      const webmap = new WebMap({
+      // Load the web map by ID
+      const webMap = new WebMap({
         portalItem: {
-          id: "66b8501f53af47e6ae981214c4d9a32a"  // Web map ID
+          id: "66b8501f53af47e6ae981214c4d9a32a"
         }
       });
 
-      // Create a SceneView for the web map
+      // Create the SceneView
       var view = new SceneView({
         container: "viewDiv",
-        map: webmap,
+        map: webMap,
         camera: {
           position: {
-            longitude: -119.5,
-            latitude: 37,
-            z: 3000000
+            longitude: -119.5, // Longitude at the center of California
+            latitude: 37,      // Latitude at the center of California
+            z: 3000000         // Adjusted zoom level to fit all of California
           },
           tilt: 0
         },
@@ -68,23 +67,10 @@
           },
           lighting: {
             type: "virtual",
-            directShadows: false
+            directShadows: false // Disable shadows
           }
         }
       });
-
-      // Load GeoJSON layer explicitly if it doesn't load from WebMap
-      const geojsonLayer = new GeoJSONLayer({
-        url: "https://www.arcgis.com/home/item.html?id=5a7754c2b8df4b1ab1b2fa6fc1733d2c",  // Add your GeoJSON URL here
-        outFields: ["*"]
-      });
-
-      // Add the GeoJSON layer to the web map
-      webmap.add(geojsonLayer);
-
-      // Centroid layer to store centroids of fire polygons (invisible points)
-      const centroidLayer = new GraphicsLayer();
-      webmap.add(centroidLayer);
 
       var animationActive = false;
       var currentFeatureIndex = 0;
@@ -92,33 +78,15 @@
       var animationInterval;
 
       // Function to zoom to a centroid point
-      function zoomToFire(centroid) {
+      function zoomToFire(centroid, index) {
         view.goTo({
           target: centroid,
-          zoom: 10,  // Adjust the zoom level as needed
-          tilt: 60
+          zoom: 11,      // Adjust this zoom level to a comfortable view height
+          tilt: 60       // Oblique angle
         }, {
-          duration: 2000,
-          easing: "in-out-cubic"
+          duration: 4000,   // Duration for the animation (in milliseconds)
+          easing: "in-out-cubic"  // Smoother transition
         });
-      }
-
-      // Function to start the animation
-      function startAnimation() {
-        if (animationActive) return;
-        animationActive = true;
-        totalFeatures = centroidLayer.graphics.length;
-
-        animationInterval = setInterval(function() {
-          if (currentFeatureIndex >= totalFeatures) {
-            currentFeatureIndex = 0;  // Loop back to the first fire
-          }
-
-          var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
-          zoomToFire(graphic.geometry);
-
-          currentFeatureIndex++;
-        }, 3000);  // Adjust delay between zooms as needed
       }
 
       // Function to stop the animation
@@ -129,46 +97,86 @@
         }
       }
 
-      // Query fire polygons and create centroids
-      geojsonLayer.when(() => {
-        geojsonLayer.queryFeatures({
-          where: "1=1",
+      // Function to start the animation
+      function startAnimation() {
+        if (animationActive) return;
+        animationActive = true;
+        totalFeatures = centroidLayer.graphics.length;
+
+        // Start the animation
+        animationInterval = setInterval(function() {
+          if (currentFeatureIndex >= totalFeatures) {
+            currentFeatureIndex = 0;  // Loop back to the first fire
+          }
+
+          var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
+          zoomToFire(graphic.geometry, currentFeatureIndex);
+
+          // Hide all other fire extents
+          firePerimeterLayer.visible = false;
+          firePerimeterLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
+          firePerimeterLayer.visible = true;
+
+          currentFeatureIndex++;  // Move to the next fire
+        }, 10000); // 3 seconds delay between each zoom
+      }
+
+      // Wait for the web map to load, then access the fire perimeter layer
+      view.when(function() {
+        const firePerimeterLayer = webMap.layers.find(function(layer) {
+          return layer.title === "California Fire Perimeters (all)";
+        });
+
+        // Create a GraphicsLayer for centroids (transparent points)
+        const centroidLayer = new GraphicsLayer();
+        webMap.add(centroidLayer);
+
+        // Query the fire perimeter layer for centroids
+        firePerimeterLayer.queryFeatures({
+          where: "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)", 
           returnGeometry: true,
           outFields: ["*"]
         }).then(function(results) {
           results.features.forEach(function(feature) {
             var centroid = feature.geometry.centroid;
+
+            // Create a point graphic with fully transparent symbol
             var pointGraphic = new Graphic({
               geometry: centroid,
+              attributes: feature.attributes,
               symbol: {
-                type: "simple-marker",
-                color: [0, 0, 0, 0],  // Fully transparent
+                type: "simple-marker",  // Simple point marker
+                color: [0, 0, 0, 0],    // Fully transparent fill
                 outline: {
-                  color: [0, 0, 0, 0],
+                  color: [0, 0, 0, 0],  // Fully transparent outline
                   width: 0
                 }
               }
             });
 
-            centroidLayer.add(pointGraphic);
+            centroidLayer.add(pointGraphic);  // Add centroid to the GraphicsLayer
+          });
+
+          // Show the wildfire layer with initial ObjectIDs
+          firePerimeterLayer.visible = true;
+          firePerimeterLayer.definitionExpression = "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)";
+
+          // Event listener for Start Animation button
+          document.getElementById('startAnimation').addEventListener('click', function() {
+            startAnimation();
+          });
+
+          // Event listener for Stop Animation button
+          document.getElementById('stopAnimation').addEventListener('click', function() {
+            stopAnimation();
+          });
+
+          // Stop animation when user manually navigates the view
+          view.on("drag", function() {
+            stopAnimation();
           });
         });
       });
-
-      // Event listeners for Start/Stop buttons
-      document.getElementById('startAnimation').addEventListener('click', function() {
-        startAnimation();
-      });
-
-      document.getElementById('stopAnimation').addEventListener('click', function() {
-        stopAnimation();
-      });
-
-      // Stop animation on manual drag
-      view.on("drag", function() {
-        stopAnimation();
-      });
-
     });
   </script>
 </body>
