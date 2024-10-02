@@ -36,10 +36,11 @@
     require([
       "esri/views/SceneView",
       "esri/WebMap",
+      "esri/layers/GeoJSONLayer",
       "esri/layers/GraphicsLayer",
       "esri/Graphic",
       "esri/core/watchUtils"
-    ], function(SceneView, WebMap, GraphicsLayer, Graphic, watchUtils) {
+    ], function(SceneView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic, watchUtils) {
 
       // Load the web map from ArcGIS Online
       const webmap = new WebMap({
@@ -71,6 +72,15 @@
           }
         }
       });
+
+      // Load GeoJSON layer explicitly if it doesn't load from WebMap
+      const geojsonLayer = new GeoJSONLayer({
+        url: "https://www.arcgis.com/home/item.html?id=5a7754c2b8df4b1ab1b2fa6fc1733d2c",  // Add your GeoJSON URL here
+        outFields: ["*"]
+      });
+
+      // Add the GeoJSON layer to the web map
+      webmap.add(geojsonLayer);
 
       // Centroid layer to store centroids of fire polygons (invisible points)
       const centroidLayer = new GraphicsLayer();
@@ -120,15 +130,12 @@
       }
 
       // Query fire polygons and create centroids
-      view.whenLayerView(webmap.layers.find(layer => layer.title === "California Top 10 Deadliest Wildfires"))
-        .then(function(layerView) {
-          return layerView.layer.queryFeatures({
-            where: "1=1",
-            returnGeometry: true,
-            outFields: ["*"]
-          });
-        })
-        .then(function(results) {
+      geojsonLayer.when(() => {
+        geojsonLayer.queryFeatures({
+          where: "1=1",
+          returnGeometry: true,
+          outFields: ["*"]
+        }).then(function(results) {
           results.features.forEach(function(feature) {
             var centroid = feature.geometry.centroid;
             var pointGraphic = new Graphic({
@@ -146,6 +153,7 @@
             centroidLayer.add(pointGraphic);
           });
         });
+      });
 
       // Event listeners for Start/Stop buttons
       document.getElementById('startAnimation').addEventListener('click', function() {
