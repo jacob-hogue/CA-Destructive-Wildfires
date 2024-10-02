@@ -36,16 +36,17 @@
     require([
       "esri/views/SceneView",
       "esri/Map",
-      "esri/views/MapView",
       "esri/layers/GraphicsLayer",
       "esri/Graphic",
-      "esri/core/watchUtils"
-    ], function(SceneView, Map,MapView, GraphicsLayer, Graphic, watchUtils) {
+      "esri/core/watchUtils",
+      "esri/portal/PortalItem",
+      "esri/layers/FeatureLayer"
+    ], function(SceneView, Map, GraphicsLayer, Graphic, watchUtils, PortalItem, FeatureLayer) {
 
       // Load the web map by ID
       const webMap = new Map({
         portalItem: {
-          id: "66b8501f53af47e6ae981214c4d9a32a"
+          id: "66b8501f53af47e6ae981214c4d9a32a" // Your pre-configured web map
         }
       });
 
@@ -78,52 +79,10 @@
       var totalFeatures = 0;
       var animationInterval;
 
-      // Function to zoom to a centroid point
-      function zoomToFire(centroid, index) {
-        view.goTo({
-          target: centroid,
-          zoom: 11,      // Adjust this zoom level to a comfortable view height
-          tilt: 60       // Oblique angle
-        }, {
-          duration: 4000,   // Duration for the animation (in milliseconds)
-          easing: "in-out-cubic"  // Smoother transition
-        });
-      }
-
-      // Function to stop the animation
-      function stopAnimation() {
-        if (animationActive) {
-          clearInterval(animationInterval);
-          animationActive = false;
-        }
-      }
-
-      // Function to start the animation
-      function startAnimation() {
-        if (animationActive) return;
-        animationActive = true;
-        totalFeatures = centroidLayer.graphics.length;
-
-        // Start the animation
-        animationInterval = setInterval(function() {
-          if (currentFeatureIndex >= totalFeatures) {
-            currentFeatureIndex = 0;  // Loop back to the first fire
-          }
-
-          var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
-          zoomToFire(graphic.geometry, currentFeatureIndex);
-
-          // Hide all other fire extents
-          firePerimeterLayer.visible = false;
-          firePerimeterLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
-          firePerimeterLayer.visible = true;
-
-          currentFeatureIndex++;  // Move to the next fire
-        }, 10000); // 3 seconds delay between each zoom
-      }
-
-      // Wait for the web map to load, then access the fire perimeter layer
+      // Wait for the view and web map to load
       view.when(function() {
+
+        // Retrieve the fire perimeter layer by name from the web map
         const firePerimeterLayer = webMap.layers.find(function(layer) {
           return layer.title === "California Fire Perimeters (all)";
         });
@@ -177,6 +136,51 @@
             stopAnimation();
           });
         });
+
+        // Function to zoom to a centroid point
+        function zoomToFire(centroid) {
+          view.goTo({
+            target: centroid,
+            zoom: 11,      // Adjust this zoom level to a comfortable view height
+            tilt: 60       // Oblique angle
+          }, {
+            duration: 4000,   // Duration for the animation (in milliseconds)
+            easing: "in-out-cubic"  // Smoother transition
+          });
+        }
+
+        // Function to stop the animation
+        function stopAnimation() {
+          if (animationActive) {
+            clearInterval(animationInterval);
+            animationActive = false;
+          }
+        }
+
+        // Function to start the animation
+        function startAnimation() {
+          if (animationActive) return;
+          animationActive = true;
+          totalFeatures = centroidLayer.graphics.length;
+
+          // Start the animation
+          animationInterval = setInterval(function() {
+            if (currentFeatureIndex >= totalFeatures) {
+              currentFeatureIndex = 0;  // Loop back to the first fire
+            }
+
+            var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
+            zoomToFire(graphic.geometry);
+
+            // Hide all other fire extents
+            firePerimeterLayer.visible = false;
+            firePerimeterLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
+            firePerimeterLayer.visible = true;
+
+            currentFeatureIndex++;  // Move to the next fire
+          }, 10000); // 10 seconds delay between each zoom
+        }
+
       });
     });
   </script>
