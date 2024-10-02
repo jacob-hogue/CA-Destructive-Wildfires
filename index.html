@@ -35,84 +35,28 @@
   <script>
     require([
       "esri/views/SceneView",
-      "esri/layers/FeatureLayer",
+      "esri/WebMap",
       "esri/layers/GraphicsLayer",
-      "esri/layers/ElevationLayer",
-      "esri/layers/TileLayer",
-      "esri/Map",
-      "esri/Basemap",
       "esri/Graphic",
-      "esri/geometry/Point",
-      "esri/renderers/SimpleRenderer",
-      "esri/symbols/SimpleFillSymbol",
-      "esri/symbols/SimpleLineSymbol",
-      "esri/symbols/SimpleMarkerSymbol",
       "esri/core/watchUtils"
-    ], function(SceneView, FeatureLayer, GraphicsLayer, ElevationLayer, TileLayer, Map, Basemap, Graphic, Point, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, SimpleMarkerSymbol, watchUtils) {
+    ], function(SceneView, WebMap, GraphicsLayer, Graphic, watchUtils) {
 
-      // Create the Dark Gray Basemap
-      const basemap = new Basemap({
+      // Load the web map from ArcGIS Online
+      const webmap = new WebMap({
         portalItem: {
-          id: "358ec1e175ea41c3bf5c68f0da11ae2b"  // Dark Gray Basemap
+          id: "66b8501f53af47e6ae981214c4d9a32a"  // Web map ID
         }
       });
-      const hillshade = new TileLayer({
-          url: "https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer",
-          blendMode: "multiply"
-        });
-      // Create the map with Dark Gray basemap and exaggerated terrain
-      var map = new Map({
-        basemap: basemap,
-        ground: "world-elevation",
-        layers: [hillshade]
-      });
 
-      // Define the wildfire layer from the FeatureServer
-      const wildfireLayer = new FeatureLayer({
-        url: "https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/California_Historic_Fire_Perimeters/FeatureServer/0",
-        outFields: ["*"], // Load all fields to filter for top 10 fires
-        visible: false, // Initially hide the layer
-        renderer: new SimpleRenderer({
-          symbol: new SimpleFillSymbol({
-            color: [255, 122, 74, 0.9], // Bright glowing red fill with 90% opacity
-            outline: new SimpleLineSymbol({
-              color: [153, 140, 175, 1], // Thin river blue outline
-              width: 0.8, // Very thin outline
-              style: "solid"
-            })
-          }),
-          // Add blendMode to enhance contrast
-    blendMode: "screen" // or "multiply" depending on desired effect
-        })
-  });
-      // Add the wildfire layer to the map
-      map.add(wildfireLayer);
-
-      // Create a GraphicsLayer for centroids (transparent points)
-      const centroidLayer = new GraphicsLayer({
-        renderer: new SimpleRenderer({
-          symbol: new SimpleMarkerSymbol({
-            color: [0, 0, 0, 0], // Fully transparent fill
-            outline: {
-              color: [0, 0, 0, 0], // Fully transparent outline
-              width: 0
-            }
-          })
-        })
-      });
-
-      // Add centroid layer to the map (even though the points will be invisible)
-      map.add(centroidLayer);
-
-      // Create the SceneView
+      // Create a SceneView for the web map
       var view = new SceneView({
         container: "viewDiv",
-        map: map,
+        map: webmap,
         camera: {
           position: {
-            longitude: -119.5, // Longitude at the center of California
-            latitude: 37,      // Latitude at the center of California
-            z: 3000000         // Adjusted zoom level to fit all of California
+            longitude: -119.5,
+            latitude: 37,
+            z: 3000000
           },
           tilt: 0
         },
@@ -123,10 +67,14 @@
           },
           lighting: {
             type: "virtual",
-            directShadows: false // Disable shadows
+            directShadows: false
           }
         }
       });
+
+      // Centroid layer to store centroids of fire polygons (invisible points)
+      const centroidLayer = new GraphicsLayer();
+      webmap.add(centroidLayer);
 
       var animationActive = false;
       var currentFeatureIndex = 0;
@@ -134,15 +82,33 @@
       var animationInterval;
 
       // Function to zoom to a centroid point
-      function zoomToFire(centroid, index) {
+      function zoomToFire(centroid) {
         view.goTo({
           target: centroid,
-          zoom: 11,      // Adjust this zoom level to a comfortable view height
-          tilt: 60       // Oblique angle
+          zoom: 10,  // Adjust the zoom level as needed
+          tilt: 60
         }, {
-          duration: 4000,   // Duration for the animation (in milliseconds)
-          easing: "in-out-cubic"  // Smoother transition
+          duration: 2000,
+          easing: "in-out-cubic"
         });
+      }
+
+      // Function to start the animation
+      function startAnimation() {
+        if (animationActive) return;
+        animationActive = true;
+        totalFeatures = centroidLayer.graphics.length;
+
+        animationInterval = setInterval(function() {
+          if (currentFeatureIndex >= totalFeatures) {
+            currentFeatureIndex = 0;  // Loop back to the first fire
+          }
+
+          var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
+          zoomToFire(graphic.geometry);
+
+          currentFeatureIndex++;
+        }, 3000);  // Adjust delay between zooms as needed
       }
 
       // Function to stop the animation
@@ -153,74 +119,46 @@
         }
       }
 
-      // Function to start the animation
-      function startAnimation() {
-        if (animationActive) return;
-        animationActive = true;
-        totalFeatures = centroidLayer.graphics.length;
-
-        // Start the animation
-        animationInterval = setInterval(function() {
-          if (currentFeatureIndex >= totalFeatures) {
-            currentFeatureIndex = 0;  // Loop back to the first fire
-          }
-
-          var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
-          zoomToFire(graphic.geometry, currentFeatureIndex);
-
-          // Hide all other fire extents
-          wildfireLayer.visible = false;
-          wildfireLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
-          wildfireLayer.visible = true;
-
-          currentFeatureIndex++;  // Move to the next fire
-        }, 10000); // 3 seconds delay between each zoom
-      }
-
-      // Query the wildfire layer for centroids and store in GraphicsLayer
-      wildfireLayer.queryFeatures({
-        where: "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)", 
-        returnGeometry: true,
-        outFields: ["*"]
-      }).then(function(results) {
-        results.features.forEach(function(feature) {
-          var centroid = feature.geometry.centroid;
-
-          // Create a point graphic with fully transparent symbol
-          var pointGraphic = new Graphic({
-            geometry: centroid,
-            attributes: feature.attributes,
-            symbol: {
-              type: "simple-marker",  // Simple point marker
-              color: [0, 0, 0, 0],    // Fully transparent fill
-              outline: {
-                color: [0, 0, 0, 0],  // Fully transparent outline
-                width: 0
-              }
-            }
+      // Query fire polygons and create centroids
+      view.whenLayerView(webmap.layers.find(layer => layer.title === "California Top 10 Deadliest Wildfires"))
+        .then(function(layerView) {
+          return layerView.layer.queryFeatures({
+            where: "1=1",
+            returnGeometry: true,
+            outFields: ["*"]
           });
+        })
+        .then(function(results) {
+          results.features.forEach(function(feature) {
+            var centroid = feature.geometry.centroid;
+            var pointGraphic = new Graphic({
+              geometry: centroid,
+              symbol: {
+                type: "simple-marker",
+                color: [0, 0, 0, 0],  // Fully transparent
+                outline: {
+                  color: [0, 0, 0, 0],
+                  width: 0
+                }
+              }
+            });
 
-          centroidLayer.add(pointGraphic);  // Add centroid to the GraphicsLayer
+            centroidLayer.add(pointGraphic);
+          });
         });
 
-        // Show the wildfire layer with initial ObjectIDs
-        wildfireLayer.visible = true;
-        wildfireLayer.definitionExpression = "OBJECTID IN (1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199)";
+      // Event listeners for Start/Stop buttons
+      document.getElementById('startAnimation').addEventListener('click', function() {
+        startAnimation();
+      });
 
-        // Event listener for Start Animation button
-        document.getElementById('startAnimation').addEventListener('click', function() {
-          startAnimation();
-        });
+      document.getElementById('stopAnimation').addEventListener('click', function() {
+        stopAnimation();
+      });
 
-        // Event listener for Stop Animation button
-        document.getElementById('stopAnimation').addEventListener('click', function() {
-          stopAnimation();
-        });
-
-        // Stop animation when user manually navigates the view
-        view.on("drag", function() {
-          stopAnimation();
-        });
+      // Stop animation on manual drag
+      view.on("drag", function() {
+        stopAnimation();
       });
 
     });
