@@ -84,7 +84,7 @@
 
                     // Apply blend mode and layer effect
                     graphicsLayer.blendMode = "color-dodge"; // Example blend mode
-                    graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Adjusted bloom effect
+                    graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Updated bloom effect
 
                     // Remove the GeoJSONLayer after conversion
                     webMap.remove(geojsonLayer);
@@ -94,7 +94,7 @@
             // Animation logic
             var objectIDs = [1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199];
             var currentIndex = 0;
-            var animationInterval;
+            var animationTimeout;
 
             function zoomToNextExtent() {
                 if (currentIndex >= objectIDs.length) {
@@ -110,7 +110,7 @@
                             target: feature.geometry.extent.expand(1.5),
                             duration: 2000
                         }).then(function() {
-                            setTimeout(function() {
+                            animationTimeout = setTimeout(function() {
                                 currentIndex++;
                                 zoomToNextExtent();
                             }, 10000); // Pause for 10 seconds
@@ -120,14 +120,14 @@
             }
 
             document.getElementById("startBtn").addEventListener("click", function() {
-                if (!animationInterval) {
+                if (!animationTimeout) {
                     zoomToNextExtent();
                 }
             });
 
             document.getElementById("stopBtn").addEventListener("click", function() {
-                clearTimeout(animationInterval);
-                animationInterval = null;
+                clearTimeout(animationTimeout);
+                animationTimeout = null;
             });
         });
     </script>
