@@ -155,9 +155,17 @@
             zoomToFire(graphic.geometry);
 
             // Hide all other fire extents
-            graphicsLayer.visible = false;
-            graphicsLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
-            graphicsLayer.visible = true;
+            graphicsLayer.graphics.forEach(function(g) {
+              g.visible = false;
+            });
+
+            // Show only the current fire extent
+            var currentFire = graphicsLayer.graphics.find(function(g) {
+              return g.attributes.OBJECTID === objectIDs[currentIndex];
+            });
+            if (currentFire) {
+              currentFire.visible = true;
+            }
 
             currentIndex++; // Move to the next fire
           }
