@@ -115,9 +115,12 @@
           objectIds: [objectId]
         }).then(function(results) {
           if (results.features.length > 0) {
-            var feature = results.features;
+            var feature = results.features[0];
+            // Check if the feature has an extent or use geometry to zoom
+            var targetGeometry = feature.geometry.extent ? feature.geometry.extent : feature.geometry;
+            
             mapView.goTo({
-              target: feature.geometry.extent.expand(1.5),
+              target: targetGeometry.expand(1.5), // Zoom to the geometry extent or feature itself
               duration: 2000
             }).then(function() {
               animationTimeout = setTimeout(function() {
