@@ -22,7 +22,8 @@
       padding: 10px;
       border-radius: 5px;
     }
-  #titleBar {
+
+    #titleBar {
       background-color: #333; /* Dark gray background */
       color: #f8f8f8; /* Off-white text */
       text-align: center; /* Center the text */
@@ -57,12 +58,23 @@
     .controls button:hover {
       background-color: #555; /* Slightly lighter gray on hover */
     }
+
+    #insetMapDiv {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 200px;
+      height: 200px;
+      border: 2px solid #333; /* Border to match the title bar */
+      z-index: 10; /* Ensure it appears above the main map */
+    }
   </style>
   <script src="https://js.arcgis.com/4.30/"></script>
 </head>
 <body>
   <div id="titleBar">California Top 10 Deadliest Wildfires</div>
   <div id="viewDiv"></div>
+  <div id="insetMapDiv"></div>
   <div class="controls">
     <button id="startAnimation">Start Animation</button>
     <button id="stopAnimation">Stop Animation</button>
@@ -76,8 +88,9 @@
       "esri/WebMap",
       "esri/layers/GeoJSONLayer",
       "esri/layers/GraphicsLayer",
-      "esri/Graphic"
-    ], function(Map, MapView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic) {
+      "esri/Graphic",
+      "esri/geometry/Extent"
+    ], function(Map, MapView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic, Extent) {
 
       // Create a WebMap instance using the web map ID
       var webMap = new WebMap({
@@ -112,6 +125,18 @@
       // Create a GraphicsLayer for centroids
       var centroidLayer = new GraphicsLayer();
       webMap.add(centroidLayer);
+
+      // Create the inset map
+      var insetMap = new MapView({
+        container: "insetMapDiv",
+        map: webMap,
+        center: [-119.5, 37], // Center of California
+        zoom: 6 // Zoom level to show all of California
+      });
+
+      // Create a GraphicsLayer for the inset map bounding box
+      var insetGraphicsLayer = new GraphicsLayer();
+      insetMap.map.add(insetGraphicsLayer);
 
       // Wait until the layer is loaded
       geojsonLayer.when(function() {
@@ -170,6 +195,21 @@
           duration: 4000, // Duration for the animation (in milliseconds)
           easing: "in-out-cubic" // Smoother transition
         });
+
+        // Update the inset map with a bounding box
+        insetGraphicsLayer.removeAll();
+        var insetGraphic = new Graphic({
+          geometry: extent,
+          symbol: {
+            type: "simple-fill",
+            color: [0, 0, 0, 0], // Transparent fill
+            outline: {
+              color: "#fc7b4c", // Red outline
+              width: 2
+            }
+          }
+        });
+        insetGraphicsLayer.add(insetGraphic);
       }
 
       function startAnimation() {
@@ -186,7 +226,7 @@
           });
 
           if (graphic) {
-            zoomToFire(graphic.geometry.extent.expand(1));
+            zoomToFire(graphic.geometry.extent.expand(1.5));
 
             // Hide all other fire extents
             graphicsLayer.graphics.forEach(function(g) {
