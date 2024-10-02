@@ -3,13 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Map with Layer Effects</title>
+    <title>2D Map with Layer Effects and Animation</title>
     <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
     <style>
         html, body, #viewDiv {
             height: 100%;
             margin: 0;
             padding: 0;
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
     </style>
     <script src="https://js.arcgis.com/4.30/"></script>
@@ -74,16 +84,59 @@
 
                     // Apply blend mode and layer effect
                     graphicsLayer.blendMode = "color-dodge"; // Example blend mode
-                    graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Example layer effect
+                    graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Adjusted bloom effect
 
                     // Remove the GeoJSONLayer after conversion
                     webMap.remove(geojsonLayer);
                 });
+            });
+
+            // Animation logic
+            var objectIDs = [1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199];
+            var currentIndex = 0;
+            var animationInterval;
+
+            function zoomToNextExtent() {
+                if (currentIndex >= objectIDs.length) {
+                    currentIndex = 0;
+                }
+                var objectId = objectIDs[currentIndex];
+                graphicsLayer.queryFeatures({
+                    objectIds: [objectId]
+                }).then(function(results) {
+                    if (results.features.length > 0) {
+                        var feature = results.features;
+                        mapView.goTo({
+                            target: feature.geometry.extent.expand(1.5),
+                            duration: 2000
+                        }).then(function() {
+                            setTimeout(function() {
+                                currentIndex++;
+                                zoomToNextExtent();
+                            }, 10000); // Pause for 10 seconds
+                        });
+                    }
+                });
+            }
+
+            document.getElementById("startBtn").addEventListener("click", function() {
+                if (!animationInterval) {
+                    zoomToNextExtent();
+                }
+            });
+
+            document.getElementById("stopBtn").addEventListener("click", function() {
+                clearTimeout(animationInterval);
+                animationInterval = null;
             });
         });
     </script>
 </head>
 <body>
     <div id="viewDiv"></div>
+    <div id="controls">
+        <button id="startBtn">Start Animation</button>
+        <button id="stopBtn">Stop Animation</button>
+    </div>
 </body>
 </html>
