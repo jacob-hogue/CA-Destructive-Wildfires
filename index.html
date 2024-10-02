@@ -35,41 +35,39 @@
   <script>
     require([
       "esri/views/SceneView",
-      "esri/Map",
+      "esri/WebMap",              // Import WebMap instead of Map
       "esri/layers/GraphicsLayer",
       "esri/Graphic",
-      "esri/core/watchUtils",
-      "esri/portal/PortalItem",
-      "esri/layers/FeatureLayer"
-    ], function(SceneView, Map, GraphicsLayer, Graphic, watchUtils, PortalItem, FeatureLayer) {
+      "esri/core/watchUtils"      // Ensure this import is necessary
+    ], function(SceneView, WebMap, GraphicsLayer, Graphic, watchUtils) {
 
       // Load the web map by ID
-      const webMap = new Map({
+      const webMap = new WebMap({   // Use WebMap for the web map reference
         portalItem: {
-          id: "66b8501f53af47e6ae981214c4d9a32a" // Your pre-configured web map
+          id: "66b8501f53af47e6ae981214c4d9a32a"  // Your web map ID
         }
       });
 
-      // Create the SceneView
+      // Create the SceneView (for 3D)
       var view = new SceneView({
         container: "viewDiv",
-        map: webMap,
+        map: webMap,                // Attach the webMap to the view
         camera: {
           position: {
-            longitude: -119.5, // Longitude at the center of California
-            latitude: 37,      // Latitude at the center of California
-            z: 3000000         // Adjusted zoom level to fit all of California
+            longitude: -119.5,       // Longitude at the center of California
+            latitude: 37,            // Latitude at the center of California
+            z: 3000000               // Adjusted zoom level to fit all of California
           },
           tilt: 0
         },
         environment: {
           background: {
             type: "color",
-            color: [50, 50, 50, 1] // Dark gray background
+            color: [50, 50, 50, 1]   // Dark gray background
           },
           lighting: {
             type: "virtual",
-            directShadows: false // Disable shadows
+            directShadows: false      // Disable shadows
           }
         }
       });
