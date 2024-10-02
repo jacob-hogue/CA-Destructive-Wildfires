@@ -39,22 +39,23 @@
       "esri/WebMap",
       "esri/layers/GeoJSONLayer",
       "esri/layers/GraphicsLayer",
-      "esri/Graphic"
-    ], function(Map, MapView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic) {
+      "esri/Graphic",
+      "esri/geometry/geometryEngine" // Import for geometric operations
+    ], function(Map, MapView, WebMap, GeoJSONLayer, GraphicsLayer, Graphic, geometryEngine) {
 
       // Create a WebMap instance using the web map ID
       var webMap = new WebMap({
-        portalItem: { // autocasts as new PortalItem()
+        portalItem: { 
           id: "66b8501f53af47e6ae981214c4d9a32a" // your web map ID
         }
       });
 
       // Create a MapView instance
       var mapView = new MapView({
-        container: "viewDiv", // Div element to contain the view
+        container: "viewDiv", 
         map: webMap,
-        center: [-118.805, 34.027], // [longitude, latitude]
-        zoom: 10 // Zoom level
+        center: [-118.805, 34.027], 
+        zoom: 10 
       });
 
       // Create a GraphicsLayer with overall transparency
@@ -72,6 +73,16 @@
       // Add the GeoJSONLayer to the map
       webMap.add(geojsonLayer);
 
+      // Variables for animation
+      var animationActive = false;
+      var animationInterval;
+      var currentFeatureIndex = 0;
+      var totalFeatures = 0;
+
+      // Create a layer for centroids
+      var centroidLayer = new GraphicsLayer();
+      webMap.add(centroidLayer);
+
       // Wait until the layer is loaded
       geojsonLayer.when(function() {
         // Convert GeoJSON features to graphics
@@ -82,66 +93,79 @@
               attributes: feature.attributes,
               symbol: {
                 type: "simple-fill",
-                color: "#fc7b4c", // Solid fill color
+                color: "#fc7b4c", 
                 outline: {
-                  color: "#9979d1", // Solid outline color
+                  color: "#9979d1", 
                   width: 1
                 }
               }
             });
             graphicsLayer.add(graphic);
+
+            // Calculate and add centroid for each fire extent
+            var centroid = geometryEngine.centroid(feature.geometry);
+            var centroidGraphic = new Graphic({
+              geometry: centroid,
+              attributes: feature.attributes,
+              symbol: {
+                type: "simple-marker",
+                color: "yellow",
+                size: 6
+              }
+            });
+            centroidLayer.add(centroidGraphic);
           });
 
           // Apply blend mode and layer effect
-          graphicsLayer.blendMode = "color-dodge"; // Example blend mode
-          graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Updated bloom effect
+          graphicsLayer.blendMode = "color-dodge"; 
+          graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; 
 
           // Remove the GeoJSONLayer after conversion
           webMap.remove(geojsonLayer);
         });
       });
 
-      // Animation logic
-      var OBJECTIDs = [1819, 2447, 9576, 7166, 1215, 3243, 5880, 2214, 1877, 1199];
-      var currentIndex = 0;
-      var animationTimeout;
-
-      function zoomToNextExtent() {
-        if (currentIndex >= OBJECTIDs.length) {
-          currentIndex = 0;
-        }
-        var OBJECTID = OBJECTIDs[currentIndex];
-        graphicsLayer.queryFeatures({
-          objectIds: [OBJECTID]
-        }).then(function(results) {
-          if (results.features.length > 0) {
-            var feature = results.features[0];
-            // Check if the feature has an extent or use geometry to zoom
-            var targetGeometry = feature.geometry.extent ? feature.geometry.extent : feature.geometry;
-            
-            mapView.goTo({
-              target: targetGeometry.expand(1.5), // Zoom to the geometry extent or feature itself
-              duration: 2000
-            }).then(function() {
-              animationTimeout = setTimeout(function() {
-                currentIndex++;
-                zoomToNextExtent();
-              }, 10000); // Pause for 10 seconds
-            });
-          }
+      // Function to zoom to a fire extent's centroid
+      function zoomToFire(geometry, index) {
+        mapView.goTo({
+          target: geometry,
+          zoom: 13, 
+          duration: 2000
         });
       }
 
-      document.getElementById("startAnimation").addEventListener("click", function() {
-        if (!animationTimeout) {
-          zoomToNextExtent();
-        }
-      });
+      // Function to start the animation
+      function startAnimation() {
+        if (animationActive) return;
+        animationActive = true;
+        totalFeatures = centroidLayer.graphics.length;
 
-      document.getElementById("stopAnimation").addEventListener("click", function() {
-        clearTimeout(animationTimeout);
-        animationTimeout = null;
-      });
+        // Start the animation
+        animationInterval = setInterval(function() {
+          if (currentFeatureIndex >= totalFeatures) {
+            currentFeatureIndex = 0;  // Loop back to the first fire
+          }
+
+          var graphic = centroidLayer.graphics.getItemAt(currentFeatureIndex);
+          zoomToFire(graphic.geometry, currentFeatureIndex);
+
+          // Hide all other fire extents
+          graphicsLayer.visible = false;
+          graphicsLayer.definitionExpression = `OBJECTID = ${graphic.attributes.OBJECTID}`;
+          graphicsLayer.visible = true;
+
+          currentFeatureIndex++;  // Move to the next fire
+        }, 10000); // 10 seconds delay between each zoom
+      }
+
+      // Function to stop the animation
+      function stopAnimation() {
+        clearInterval(animationInterval);
+        animationActive = false;
+      }
+
+      document.getElementById("startAnimation").addEventListener("click", startAnimation);
+      document.getElementById("stopAnimation").addEventListener("click", stopAnimation);
     });
   </script>
 </body>
