@@ -34,12 +34,12 @@
 
   <script>
     require([
-      "esri/views/SceneView",
+      "esri/views/MapView",
       "esri/WebMap",              
       "esri/layers/GraphicsLayer",
       "esri/Graphic",
       "esri/core/watchUtils"      
-    ], function(SceneView, WebMap, GraphicsLayer, Graphic, watchUtils) {
+    ], function(MapView, WebMap, GraphicsLayer, Graphic, watchUtils) {
 
       console.log("Modules loaded.");
 
@@ -51,28 +51,12 @@
       });
 
       // Create the SceneView (for 3D)
-      var view = new SceneView({
+      var view = new MapView({
         container: "viewDiv",
-        map: webMap,
-        camera: {
-          position: {
-            longitude: -119.5,       
-            latitude: 37,            
-            z: 3000000               
-          },
-          tilt: 0
-        },
-        environment: {
-          background: {
-            type: "color",
-            color: [50, 50, 50, 1]   
-          },
-          lighting: {
-            type: "virtual",
-            directShadows: false     
-          }
-        }
-      });
+       map: webMap,
+       center: [-119.5, 37], // Center at California
+       zoom: 6  // Adjusted zoom level
+   });
 
       console.log("SceneView created, waiting for map to load...");
 
