@@ -131,12 +131,32 @@
         container: "insetMapDiv",
         map: webMap,
         center: [-119.5, 37], // Center of California
-        zoom: 5 // Zoom level to show all of California
+        zoom: 5, // Zoom level to show all of California
+        ui: {
+          components: [] // Remove default UI components, including zoom controls
+        }
       });
 
       // Create a GraphicsLayer for the inset map bounding box
       var insetGraphicsLayer = new GraphicsLayer();
       insetMap.map.add(insetGraphicsLayer);
+      
+// Add a FeatureLayer for the California boundary
+      var californiaBoundaryLayer = new FeatureLayer({
+        url: "https://services3.arcgis.com/fdvHcZVgB2QSRNkL/arcgis/rest/services/State_Boundary/FeatureServer",
+        renderer: {
+          type: "simple",
+          symbol: {
+            type: "simple-fill",
+            color: [0, 0, 0, 0], // No fill
+            outline: {
+              color: [255, 255, 255, 1], // White color
+              width: 1 // Thin line
+            }
+          }
+        }
+      });
+      insetMap.map.add(californiaBoundaryLayer);
 
       // Wait until the layer is loaded
       geojsonLayer.when(function() {
