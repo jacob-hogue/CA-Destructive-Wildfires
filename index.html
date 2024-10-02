@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>California Wildfires</title>
+  <title>California Top 10 Deadliest Wildfires</title>
   <link rel="stylesheet" href="https://js.arcgis.com/4.30/esri/css/main.css">
   <style>
     html, body, #viewDiv {
@@ -130,7 +130,7 @@
       function zoomToFire(extent) {
         mapView.goTo({
           target: extent,
-          duration: 4000, // Duration for the animation (in milliseconds)
+          duration: 8000, // Duration for the animation (in milliseconds)
           easing: "in-out-cubic" // Smoother transition
         });
       }
