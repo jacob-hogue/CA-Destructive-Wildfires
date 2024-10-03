@@ -158,7 +158,9 @@
       }
     },
     opacity: 1, // Full opacity for the outline
-    title: "State Boundary"
+    title: "State Boundary",
+    minScale: 0,  // Make sure the layer is visible at any zoom level (no minScale)
+    maxScale: 0   // No upper scale limit, always visible
   });
 
   // Add the state boundary layer only to the inset map
