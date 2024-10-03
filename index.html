@@ -127,16 +127,15 @@
       var centroidLayer = new GraphicsLayer();
       webMap.add(centroidLayer);
 
-      // Create the inset map using the World Imagery Firefly as the basemap
-var insetMap = new Map({
-  basemap: {
-    baseLayers: [
-      new FeatureLayer({
-        url: "https://fly.maptiles.arcgis.com/arcgis/rest/services/World_Imagery_Firefly/MapServer"
-      })
-    ]
-  }
-});
+    const worldImagery = new TileLayer({
+        portalItem: {
+            id: "a66bfb7dd3b14228bf7ba42b138fe2ea",
+        },
+    });
+
+      const insetMap = new Map({
+        layers: [worldImagery],
+    });
 
 
   // Create a MapView for the inset map
