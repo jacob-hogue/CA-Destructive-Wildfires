@@ -127,22 +127,23 @@
       var centroidLayer = new GraphicsLayer();
       webMap.add(centroidLayer);
 
-      // Create the inset map
-      var insetMap = new MapView({
-        container: "insetMapDiv",
-        map: webMap,
-        center: [-110.5, 37], // Center of California
-        zoom: 2, // Zoom level to show all of California
-        ui: {
-          components: [] // Remove default UI components, including zoom controls
-        }
-      });
+      // Create the inset map separately
+  var insetMap = new Map({
+    basemap: "gray-vector" // Simple basemap for inset map
+  });
 
-      // Create a GraphicsLayer for the inset map bounding box
-      var insetGraphicsLayer = new GraphicsLayer();
-      insetMap.map.add(insetGraphicsLayer);
+  // Create a MapView for the inset map
+  var insetMapView = new MapView({
+    container: "insetMapDiv",
+    map: insetMap,
+    center: [-110.5, 37], // Center of California
+    zoom: 2, // Zoom level to show all of California
+    ui: {
+      components: [] // Remove default UI components
+    }
+  });
 
-      // Add FeatureLayer for State Boundary (polygon with no fill and thin white outline)
+  // Add FeatureLayer for State Boundary only to the inset map
   var stateBoundaryLayer = new FeatureLayer({
     url: "https://services3.arcgis.com/fdvHcZVgB2QSRNkL/arcgis/rest/services/State_Boundary/FeatureServer/0",
     renderer: {
@@ -152,8 +153,7 @@
         color: [0, 0, 0, 0], // No fill (fully transparent)
         outline: {
           color: "white", // White outline
-          width: 1, // Thin outline
-          style: "solid"
+          width: 1 // Thin outline
         }
       }
     },
@@ -161,8 +161,14 @@
     title: "State Boundary"
   });
 
-  // Add the state boundary layer to the inset map
-  insetMap.map.add(stateBoundaryLayer);
+  // Add the state boundary layer only to the inset map
+  insetMap.add(stateBoundaryLayer);
+
+
+      // Create a GraphicsLayer for the inset map bounding box
+      var insetGraphicsLayer = new GraphicsLayer();
+      insetMap.add(insetGraphicsLayer);
+
       // Wait until the layer is loaded
       geojsonLayer.when(function() {
         // Convert GeoJSON features to graphics
