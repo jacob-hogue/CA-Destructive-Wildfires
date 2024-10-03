@@ -85,13 +85,14 @@
     require([
   "esri/Map",
   "esri/views/MapView",
+  "esri/layers/TileLayer",
   "esri/WebMap",
   "esri/layers/FeatureLayer",
   "esri/layers/GeoJSONLayer",
   "esri/layers/GraphicsLayer",
   "esri/Graphic",
   "esri/geometry/Extent"
-], function(Map, MapView, WebMap, FeatureLayer, GeoJSONLayer, GraphicsLayer, Graphic, Extent) {
+], function(Map, MapView,TileLayer, WebMap, FeatureLayer, GeoJSONLayer, GraphicsLayer, Graphic, Extent) {
 
       // Create a WebMap instance using the web map ID
       var webMap = new WebMap({
