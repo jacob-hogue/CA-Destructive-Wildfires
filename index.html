@@ -147,31 +147,6 @@
     }
   });
 
-  // Add FeatureLayer for State Boundary only to the inset map
-  var stateBoundaryLayer = new FeatureLayer({
-    url: "https://services3.arcgis.com/fdvHcZVgB2QSRNkL/arcgis/rest/services/State_Boundary/FeatureServer/0",
-    renderer: {
-      type: "simple", // autocasts as new SimpleRenderer()
-      symbol: {
-        type: "simple-fill", // autocasts as new SimpleFillSymbol()
-        color: [0, 0, 0, 0], // No fill (fully transparent)
-        outline: {
-          color: "white", // White outline
-          width: 0.5 // Thin outline
-        }
-      }
-    },
-    blendMode: "destination-in",
-    opacity: 1, // Full opacity for the outline
-    title: "State Boundary",
-    minScale: 0,  // Make sure the layer is visible at any zoom level (no minScale)
-    maxScale: 0   // No upper scale limit, always visible
-  });
-
-  // Add the state boundary layer only to the inset map
-  insetMap.add(stateBoundaryLayer);
-
-
       // Create a GraphicsLayer for the inset map bounding box
       var insetGraphicsLayer = new GraphicsLayer();
       insetMap.add(insetGraphicsLayer);
