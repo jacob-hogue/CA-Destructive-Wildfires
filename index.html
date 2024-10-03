@@ -128,15 +128,12 @@
       var centroidLayer = new GraphicsLayer();
       webMap.add(centroidLayer);
 
-    const worldImagery = new TileLayer({
-        portalItem: {
-            id: "a66bfb7dd3b14228bf7ba42b138fe2ea",
-        },
-    });
-
-      const insetMap = new Map({
-        layers: [worldImagery],
-    });
+      // Create a WebMap instance using the web map ID
+      var insetMap = new WebMap({
+        portalItem: { // autocasts as new PortalItem()
+          id: "c1f2b06bde044193a136c42427503f92" // your web map ID
+        }
+      });
 
 
   // Create a MapView for the inset map
