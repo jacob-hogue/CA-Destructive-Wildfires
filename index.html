@@ -129,7 +129,7 @@
 
       // Create the inset map separately
   var insetMap = new Map({
-    basemap: "gray-vector" // Simple basemap for inset map
+    basemap: "dark-gray-vector" // Simple basemap for inset map
   });
 
   // Create a MapView for the inset map
@@ -137,7 +137,7 @@
     container: "insetMapDiv",
     map: insetMap,
     center: [-110.5, 37], // Center of California
-    zoom: 2, // Zoom level to show all of California
+    zoom: 5, // Zoom level to show all of California
     ui: {
       components: [] // Remove default UI components
     }
@@ -153,7 +153,7 @@
         color: [0, 0, 0, 0], // No fill (fully transparent)
         outline: {
           color: "white", // White outline
-          width: 1 // Thin outline
+          width: 2 // Thin outline
         }
       }
     },
