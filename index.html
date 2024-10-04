@@ -69,6 +69,15 @@
       border: 2px solid #333; /* Border to match the title bar */
       z-index: 10; /* Ensure it appears above the main map */
     }
+    #DescriptionDiv {
+      position: absolute;
+      bottom: 30px;
+      left: 10px;
+      width: 250px;
+      height: 250px;
+      border: 2px solid #333; /* Border to match the title bar */
+      z-index: 10; /* Ensure it appears above the main map */
+    }
   </style>
   <script src="https://js.arcgis.com/4.30/"></script>
 </head>
@@ -76,6 +85,7 @@
   <div id="titleBar">California Top 10 Deadliest Wildfires</div>
   <div id="viewDiv"></div>
   <div id="insetMapDiv"></div>
+  <div id="DescriptionDiv"></div>
   <div class="controls">
     <button id="startAnimation">Start Animation</button>
     <button id="stopAnimation">Stop Animation</button>
