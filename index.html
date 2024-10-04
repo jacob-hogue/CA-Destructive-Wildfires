@@ -241,14 +241,14 @@
   return date.toLocaleDateString('en-US', options);
 }
 
-function updateDescription(fireName, startDate) {
+function updateDescription(fireName, startDate,rank) {
   var descriptionDiv = document.getElementById("DescriptionDiv");
   
   // Create content for the description
   var content = `
     <div style="text-align: center;">
-      <h1 style="font-size: 24px; color: red; font-weight: bold;">${fireName}</h1>
-      <p style="font-size: 16px; font-weight: bold; color: white;">
+      <h1 style="font-size: 32px; color: red; font-weight: bold;">#${rank} ${fireName}</h1>
+      <p style="font-size: 20px; font-weight: bold; color: white;">
         ${formatAlarmDate(startDate)}
       </p>
     </div>
@@ -283,7 +283,7 @@ function updateDescription(fireName, startDate) {
             graphic.visible = true;
 
              // Update the description with FIRE_NAME and the correct date field (e.g., START_DATE)
-      updateDescription(graphic.attributes.FIRE_NAME, graphic.attributes.ALARM_DATE);
+      updateDescription(graphic.attributes.FIRE_NAME, graphic.attributes.ALARM_DATE,currentIndex + 1);
 
 
             currentIndex++; // Move to the next fire
