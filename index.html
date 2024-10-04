@@ -63,7 +63,7 @@
       background-color: #707b7c;
       position: absolute;
       bottom: 10px;
-      right: 10px;
+      right: 30px;
       width: 320px;
       height: 350px;
       border: 2px solid #333; /* Border to match the title bar */
@@ -72,8 +72,8 @@
     #DescriptionDiv {
       position: absolute;
       bottom: 390px;
-      right: 10px;
-      width: 320px;
+      right: 30px;
+      width: 350px;
       height: 250px;
       z-index: 10; /* Ensure it appears above the main map */
     }
@@ -259,10 +259,6 @@ const fireData = {
 
 function updateDescription(fireName, startDate,rank) {
   var descriptionDiv = document.getElementById("DescriptionDiv");
-
-  // Adjust font size based on length of the fireName
-  var fontSize = fireName.length > 10 ? '22px' : '32px'; // Adjust font-size based on the name's length
-  
 
   // Get fire statistics from the fireData object
   var fireStats = fireData[fireName];
