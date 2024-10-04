@@ -77,13 +77,7 @@
       height: 250px;
       z-index: 10; /* Ensure it appears above the main map */
     }
-    #DescriptionDiv h1 {
-  font-size: 32px;
-  white-space: nowrap; /* Prevent the text from wrapping */
-  overflow: hidden; /* Hide any overflow */
-  text-overflow: ellipsis; /* Add '...' to the text if necessary */
-  max-width: 100%; /* Ensure it fits within the container */
-}
+   
   </style>
   <script src="https://js.arcgis.com/4.30/"></script>
 </head>
@@ -265,6 +259,10 @@ const fireData = {
 
 function updateDescription(fireName, startDate,rank) {
   var descriptionDiv = document.getElementById("DescriptionDiv");
+
+  // Adjust font size based on length of the fireName
+  var fontSize = fireName.length > 12 ? '24px' : '32px'; // Adjust font-size based on the name's length
+  
 
   // Get fire statistics from the fireData object
   var fireStats = fireData[fireName];
