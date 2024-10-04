@@ -71,7 +71,6 @@
     }
     #DescriptionDiv {
       position: absolute;
-      background-color: rgba(0, 0, 0, 0.5); /* Black background with 50% opacity */
       bottom: 380px;
       right: 10px;
       width: 320px;
@@ -266,14 +265,14 @@ function updateDescription(fireName, startDate,rank) {
   // Create content for the description
   var content = `
     <div style="text-align: center;">
-      <h1 style="font-size: 32px; color: red; font-weight: bold;">#${rank} ${fireName}</h1>
-      <p style="font-size: 20px; font-weight: bold; color: white;">
+      <h1 style="font-size: 36px; color: red; font-weight: bold;">#${rank} ${fireName}</h1>
+      <p style="font-size: 24px; font-weight: bold; color: white;">
         ${formatAlarmDate(startDate)}
       </p>
       ${fireStats ? `
-        <p style="font-size: 16px; font-weight: bold; color: white;">Acres Burned: ${fireStats.acres}</p>
-        <p style="font-size: 16px; font-weight: bold; color: white;">Structures Lost: ${fireStats.structures}</p>
-        <p style="font-size: 16px; font-weight: bold; color: white;">Deaths: ${fireStats.deaths}</p>
+        <p style="font-size: 14px; font-weight: bold; color: white;">Acres Burned: ${fireStats.acres}</p>
+        <p style="font-size: 14px; font-weight: bold; color: white;">Structures Lost: ${fireStats.structures}</p>
+        <p style="font-size: 14px; font-weight: bold; color: white;">Deaths: ${fireStats.deaths}</p>
       ` : ''}
     </div>
   `;
