@@ -235,6 +235,29 @@
         insetGraphicsLayer.add(insetGraphic);
       }
 
+      function formatAlarmDate(startDate) {
+  var date = new Date(startDate); // Assuming the date is in a format that can be parsed
+  var options = { year: 'numeric', month: 'long' }; // Full month name and year
+  return date.toLocaleDateString('en-US', options);
+}
+
+function updateDescription(fireName, startDate) {
+  var descriptionDiv = document.getElementById("DescriptionDiv");
+  
+  // Create content for the description
+  var content = `
+    <div style="text-align: center; color: white;">
+      <h1 style="font-size: 24px; font-weight: bold;">${fireName}</h1>
+      <p style="font-size: 16px; font-weight: bold; color: white;">
+        ${formatAlarmDate(startDate)}
+      </p>
+    </div>
+  `;
+  
+  descriptionDiv.innerHTML = content;
+}
+      
+
       function startAnimation() {
         if (animationActive) return;
         animationActive = true;
@@ -258,6 +281,10 @@
 
             // Show only the current fire extent
             graphic.visible = true;
+
+             // Update the description with FIRE_NAME and the correct date field (e.g., START_DATE)
+      updateDescription(graphic.attributes.FIRE_NAME, graphic.attributes.ALARM_DATE);
+
 
             currentIndex++; // Move to the next fire
           }
