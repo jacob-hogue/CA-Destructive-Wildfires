@@ -166,7 +166,11 @@
       geojsonLayer.when(function() {
         // Convert GeoJSON features to graphics
         geojsonLayer.queryFeatures().then(function(results) {
-          results.features.forEach(function(feature) {
+    results.features.forEach(function(feature) {
+      // Trim spaces from the FIRE_NAME for specific cases
+      if (feature.attributes.FIRE_NAME === "VALLEY" || feature.attributes.FIRE_NAME === "CARR") {
+        feature.attributes.FIRE_NAME = feature.attributes.FIRE_NAME.trim();
+      }
             var graphic = new Graphic({
               geometry: feature.geometry,
               attributes: feature.attributes,
@@ -197,17 +201,6 @@
             });
             centroidLayer.add(centroidGraphic);
           });
-
-           // Log the fire names for debugging
-    console.log("Fire Data Names:");
-    fireData.forEach(fire => {
-      console.log(fire.FIRE_NAME);
-    });
-
-    console.log("Graphics Layer Names:");
-    graphicsLayer.graphics.forEach(graphic => {
-      console.log(graphic.attributes.FIRE_NAME);
-    });
 
           // Apply blend mode and layer effect
           graphicsLayer.blendMode = "color-dodge"; // Example blend mode
