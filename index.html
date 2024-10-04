@@ -235,6 +235,21 @@
         insetGraphicsLayer.add(insetGraphic);
       }
 
+      // Fire data with Acres Burned, Structures Lost, and Deaths
+const fireData = {
+  "CAMP": { acres: "153,336", structures: "18,804", deaths: 85 },
+  "TUBBS": { acres: "36,807", structures: "5,636", deaths: 22 },
+  "TUNNEL - Oakland Hills": { acres: "1,600", structures: "2,900", deaths: 25 },
+  "CEDAR": { acres: "273,246", structures: "2,820", deaths: 15 },
+  "NORTH COMPLEX": { acres: "318,935", structures: "2,352", deaths: 15 },
+  "VALLEY": { acres: "76,067", structures: "1,955", deaths: 4 },
+  "WITCH": { acres: "197,990", structures: "1,650", deaths: 2 },
+  "WOOLSEY": { acres: "96,949", structures: "1,643", deaths: 3 },
+  "CARR": { acres: "229,651", structures: "1,614", deaths: 8 },
+  "GLASS": { acres: "67,484", structures: "1,520", deaths: 0 }
+};
+
+
       function formatAlarmDate(startDate) {
   var date = new Date(startDate); // Assuming the date is in a format that can be parsed
   var options = { year: 'numeric', month: 'long' }; // Full month name and year
@@ -243,6 +258,9 @@
 
 function updateDescription(fireName, startDate,rank) {
   var descriptionDiv = document.getElementById("DescriptionDiv");
+
+  // Get fire statistics from the fireData object
+  var fireStats = fireData[fireName];
   
   // Create content for the description
   var content = `
@@ -251,6 +269,11 @@ function updateDescription(fireName, startDate,rank) {
       <p style="font-size: 20px; font-weight: bold; color: white;">
         ${formatAlarmDate(startDate)}
       </p>
+      ${fireStats ? `
+        <p style="font-size: 16px; color: white;">Acres Burned: ${fireStats.acres}</p>
+        <p style="font-size: 16px; color: white;">Structures Lost: ${fireStats.structures}</p>
+        <p style="font-size: 16px; color: white;">Deaths: ${fireStats.deaths}</p>
+      ` : ''}
     </div>
   `;
   
