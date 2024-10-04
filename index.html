@@ -270,9 +270,9 @@ function updateDescription(fireName, startDate,rank) {
         ${formatAlarmDate(startDate)}
       </p>
       ${fireStats ? `
-        <p style="font-size: 16px; color: white;">Acres Burned: ${fireStats.acres}</p>
-        <p style="font-size: 16px; color: white;">Structures Lost: ${fireStats.structures}</p>
-        <p style="font-size: 16px; color: white;">Deaths: ${fireStats.deaths}</p>
+        <p style="font-size: 16px; font-weight: bold; color: white;">Acres Burned: ${fireStats.acres}</p>
+        <p style="font-size: 16px; font-weight: bold; color: white;">Structures Lost: ${fireStats.structures}</p>
+        <p style="font-size: 16px; font-weight: bold; color: white;">Deaths: ${fireStats.deaths}</p>
       ` : ''}
     </div>
   `;
