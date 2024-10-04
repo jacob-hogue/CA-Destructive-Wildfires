@@ -198,6 +198,17 @@
             centroidLayer.add(centroidGraphic);
           });
 
+           // Log the fire names for debugging
+    console.log("Fire Data Names:");
+    fireData.forEach(fire => {
+      console.log(fire.FIRE_NAME);
+    });
+
+    console.log("Graphics Layer Names:");
+    graphicsLayer.graphics.forEach(graphic => {
+      console.log(graphic.attributes.FIRE_NAME);
+    });
+
           // Apply blend mode and layer effect
           graphicsLayer.blendMode = "color-dodge"; // Example blend mode
           graphicsLayer.effect = "bloom(0.2, 3.1px, 0.1)"; // Updated bloom effect
