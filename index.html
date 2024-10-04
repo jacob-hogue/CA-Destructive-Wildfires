@@ -168,7 +168,7 @@
         geojsonLayer.queryFeatures().then(function(results) {
     results.features.forEach(function(feature) {
       // Trim spaces from the FIRE_NAME for specific cases
-      if (feature.attributes.FIRE_NAME === "VALLEY" || feature.attributes.FIRE_NAME === "CARR") {
+      if (feature.attributes.FIRE_NAME === "VALLEY " || feature.attributes.FIRE_NAME === "CARR ") {
         feature.attributes.FIRE_NAME = feature.attributes.FIRE_NAME.trim();
       }
             var graphic = new Graphic({
