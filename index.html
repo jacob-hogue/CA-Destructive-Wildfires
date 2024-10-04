@@ -77,6 +77,13 @@
       height: 250px;
       z-index: 10; /* Ensure it appears above the main map */
     }
+    #DescriptionDiv h1 {
+  font-size: 32px;
+  white-space: nowrap; /* Prevent the text from wrapping */
+  overflow: hidden; /* Hide any overflow */
+  text-overflow: ellipsis; /* Add '...' to the text if necessary */
+  max-width: 100%; /* Ensure it fits within the container */
+}
   </style>
   <script src="https://js.arcgis.com/4.30/"></script>
 </head>
