@@ -300,7 +300,7 @@ function updateDescription(fireName, startDate,rank) {
           });
 
           if (graphic) {
-            zoomToFire(graphic.geometry.extent.expand(1.5));
+            zoomToFire(graphic.geometry.extent.expand(1));
 
             // Hide all other fire extents
             graphicsLayer.graphics.forEach(function(g) {
